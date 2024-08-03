@@ -23,7 +23,7 @@ local M = {}
 
 ---@param mods string
 ---@return sqls_lsp_handler
-local function make_show_results_handler(mods)
+local function make_show_results_handler(mods, temp_query_bufnr)
     return function(err, result, _, _)
         if err then
             vim.notify("sqls: " .. err.message, vim.log.levels.ERROR)
@@ -31,6 +31,9 @@ local function make_show_results_handler(mods)
         end
         if not result then
             return
+        end
+        if temp_query_bufnr then
+            vim.cmd("bdelete! " ..temp_query_bufnr.."|b#")
         end
         local tempfile = fn.tempname() .. ".sqls_output"
         local bufnr = fn.bufnr(tempfile, true)
@@ -174,7 +177,7 @@ local function make_choice_function(command)
         client.request("workspace/executeCommand", {
             command = command,
             arguments = { vim.uri_from_bufnr(temp_bufnr), false },
-        }, make_show_results_handler(""))
+        }, make_show_results_handler("", temp_bufnr))
     end
 end
 

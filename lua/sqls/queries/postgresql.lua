@@ -61,4 +61,12 @@ M.unique = function(schema, table)
     )
 end
 
+M.indices = function(schema, table)
+    return string.format(
+        "SELECT * FROM pg_indexes WHERE tablename='%s' AND schemaname='%s'",
+        table,
+        schema
+    )
+end
+
 return M
