@@ -1,0 +1,16 @@
+:SqlsExecuteQuery	sqls-nvim.txt	/*:SqlsExecuteQuery*
+:SqlsExecuteQueryVertical	sqls-nvim.txt	/*:SqlsExecuteQueryVertical*
+:SqlsShowConnections	sqls-nvim.txt	/*:SqlsShowConnections*
+:SqlsShowDatabases	sqls-nvim.txt	/*:SqlsShowDatabases*
+:SqlsShowSchemas	sqls-nvim.txt	/*:SqlsShowSchemas*
+:SqlsSwitchConnection	sqls-nvim.txt	/*:SqlsSwitchConnection*
+:SqlsSwitchDatabase	sqls-nvim.txt	/*:SqlsSwitchDatabase*
+<Plug>(sqls-execute-query)	sqls-nvim.txt	/*<Plug>(sqls-execute-query)*
+<Plug>(sqls-execute-query-vertical)	sqls-nvim.txt	/*<Plug>(sqls-execute-query-vertical)*
+User_SqlsConnectionChoice	sqls-nvim.txt	/*User_SqlsConnectionChoice*
+User_SqlsDatabaseChoice	sqls-nvim.txt	/*User_SqlsDatabaseChoice*
+sqls-nvim-commands	sqls-nvim.txt	/*sqls-nvim-commands*
+sqls-nvim-events	sqls-nvim.txt	/*sqls-nvim-events*
+sqls-nvim-maps	sqls-nvim.txt	/*sqls-nvim-maps*
+sqls-nvim-setup	sqls-nvim.txt	/*sqls-nvim-setup*
+sqls-nvim.txt	sqls-nvim.txt	/*sqls-nvim.txt*
