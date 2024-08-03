@@ -52,4 +52,13 @@ M.primary_keys = function(schema, table)
     )
 end
 
+M.unique = function(schema, table)
+    return string.format(
+        "%s WHERE constraint_type = 'UNIQUE' AND tc.table_name = '%s' AND tc.table_schema = '%s';",
+        basic_constraint_query,
+        table,
+        schema
+    )
+end
+
 return M
