@@ -23,7 +23,7 @@ local M = {}
 
 ---@param mods string
 ---@return sqls_lsp_handler
-local function make_show_results_handler(mods, original_lines)
+local function make_show_results_handler(mods)
     return function(err, result, _, _)
         if err then
             vim.notify("sqls: " .. err.message, vim.log.levels.ERROR)
@@ -31,9 +31,6 @@ local function make_show_results_handler(mods, original_lines)
         end
         if not result then
             return
-        end
-        if original_lines then
-            vim.api.nvim_buf_set_lines(0, 0, -1, true, original_lines)
         end
         local tempfile = fn.tempname() .. ".sqls_output"
         local bufnr = fn.bufnr(tempfile, true)
@@ -166,15 +163,18 @@ end
 ---@return sqls_switch_function
 local function make_choice_function(command)
     return function(client_id, query)
-        local client = vim.lsp.get_client_by_id(client_id)
-        local original_lines = vim.api.nvim_buf_get_lines(0, 0, -1, true)
+        -- create a temp file to write custom queries to for the sqls server to read from
+        local tempfile = fn.tempname()
+        local temp_bufnr = fn.bufnr(tempfile, true)
         local query_lines = vim.split(query, "\n")
-        vim.api.nvim_buf_set_lines(0, 0, -1, true, query_lines)
+        api.nvim_buf_set_lines(temp_bufnr, 0, 1, false, query_lines)
+        vim.lsp.buf_attach_client(temp_bufnr, client_id) -- attach the temp buffer to lsp server
 
+        local client = vim.lsp.get_client_by_id(client_id)
         client.request("workspace/executeCommand", {
             command = command,
-            arguments = { vim.uri_from_bufnr(0), false },
-        }, make_show_results_handler("", original_lines))
+            arguments = { vim.uri_from_bufnr(temp_bufnr), false },
+        }, make_show_results_handler(""))
     end
 end
 
