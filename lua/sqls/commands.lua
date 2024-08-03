@@ -23,7 +23,7 @@ local M = {}
 
 ---@param mods string
 ---@return sqls_lsp_handler
-local function make_show_results_handler(mods)
+local function make_show_results_handler(mods, original_lines)
     return function(err, result, _, _)
         if err then
             vim.notify("sqls: " .. err.message, vim.log.levels.ERROR)
@@ -31,6 +31,9 @@ local function make_show_results_handler(mods)
         end
         if not result then
             return
+        end
+        if original_lines then
+            vim.api.nvim_buf_set_lines(0, 0, -1, true, original_lines)
         end
         local tempfile = fn.tempname() .. ".sqls_output"
         local bufnr = fn.bufnr(tempfile, true)
@@ -137,7 +140,7 @@ local function make_choice_handler(client_id, switch_function, answer_formatter,
             switch_callback(answer)
             return
         end
-        prompt = vim.g.sqls_nvim_connection
+        local prompt = vim.g.sqls_nvim_connection
         if vim.g.sqls_nvim_database ~= "" then
             prompt = prompt .. " - " .. vim.g.sqls_nvim_database
         end
@@ -169,10 +172,14 @@ end
 local function make_choice_function(command)
     return function(client_id, query)
         local client = vim.lsp.get_client_by_id(client_id)
+        local original_lines = vim.api.nvim_buf_get_lines(0, 0, -1, true)
+        local query_lines = vim.split(query, "\n")
+        vim.api.nvim_buf_set_lines(0, 0, -1, true, query_lines)
+
         client.request("workspace/executeCommand", {
             command = command,
-            arguments = { vim.uri_from_bufnr(0), false, query },
-        }, make_show_results_handler())
+            arguments = { vim.uri_from_bufnr(0), false },
+        }, make_show_results_handler("", original_lines))
     end
 end
 
@@ -236,16 +243,5 @@ end
 M.switch_database = chain_prompt_with_action(database_prompt_function, database_switch_function)
 M.switch_connection = chain_prompt_with_action(connection_prompt_function, connection_switch_function)
 M.describe_table = chain_prompt_with_action(describe_table_prompt_function, query_choice_fucntion)
-M.test_query = function(client_id)
-    local client = vim.lsp.get_client_by_id(client_id)
-    client.request("workspace/executeCommand", {
-        command = "executeQuery",
-        arguments = {
-            vim.uri_from_bufnr(0),
-            false,
-            "SELECT * FROM information_schema.columns WHERE table_name='account' AND table_schema='public';",
-        },
-    }, make_show_results_handler())
-end
 
 return M

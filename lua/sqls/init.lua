@@ -56,10 +56,6 @@ M.on_attach = function(client, bufnr)
         require("sqls.commands").switch_connection(client_id, args.args ~= "" and args.args or nil)
     end, { nargs = "?" })
 
-    api.nvim_buf_create_user_command(bufnr, "SqlsTest", function(args)
-        require("sqls.commands").test_query(client_id, args.args ~= "" and args.args or nil)
-    end, { nargs = "?" })
-
     api.nvim_buf_set_keymap(
         bufnr,
         "n",
