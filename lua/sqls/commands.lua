@@ -107,9 +107,9 @@ M.query_vertical = make_query_mapping("-show-vertical")
 ---@param switch_function sqls_switch_function
 ---@param answer_formatter sqls_answer_formatter
 ---@param event_name sqls_event_name
----@param query? string
+---@param query_template? string
 ---@return sqls_lsp_handler
-local function make_choice_handler(client_id, switch_function, answer_formatter, event_name, query)
+local function make_choice_handler(client_id, switch_function, answer_formatter, event_name, query_template)
     return function(err, result, _, _)
         if err then
             vim.notify("sqls: " .. err.message, vim.log.levels.ERROR)
@@ -127,18 +127,13 @@ local function make_choice_handler(client_id, switch_function, answer_formatter,
             if not answer then
                 return
             end
-            switch_function(client_id, answer_formatter(answer))
+            switch_function(client_id, answer_formatter(answer, query_template))
             require("sqls.events")._dispatch_event(event_name, { choice = answer })
             ---@diagnostic disable-next-line: redundant-parameter
             nvim_exec_autocmds("User", {
                 pattern = to_autocmd_event_name(event_name),
                 data = { choice = answer },
             })
-        end
-        if query then
-            local answer = choices[tonumber(query)]
-            switch_callback(answer)
-            return
         end
         local prompt = vim.g.sqls_nvim_connection
         if vim.g.sqls_nvim_database ~= "" then
@@ -218,16 +213,17 @@ local function format_connection_answer(answer)
     return vim.split(answer, " ")[1]
 end
 ---@type sqls_answer_formatter
-local function format_table_answer(answer)
+local function format_table_helper_answer(answer, query_template)
     local schema, table = answer:match("([^. ]*).(.*)")
-    return queries[vim.g.sqls_nvim_dialect].describe_table(schema, table)
+    return queries[vim.g.sqls_nvim_dialect][query_template](schema, table)
 end
 
 local database_switch_function = make_switch_function("switchDatabase")
 local connection_switch_function = make_switch_function("switchConnections")
 local query_choice_fucntion = make_choice_function("executeQuery")
 local database_prompt_function = make_prompt_switch_function("showDatabases", format_database_answer, "database_choice")
-local describe_table_prompt_function = make_prompt_switch_function("showTables", format_table_answer, "table_choice")
+local table_helper_prompt_function =
+    make_prompt_switch_function("showTables", format_table_helper_answer, "table_choice")
 local connection_prompt_function =
     make_prompt_switch_function("showConnections", format_connection_answer, "connection_choice")
 
@@ -235,13 +231,13 @@ local connection_prompt_function =
 ---@param switch_function sqls_switch_function
 ---@return sqls_switcher
 local function chain_prompt_with_action(prompt_function, switch_function)
-    return function(client_id, query)
-        prompt_function(client_id, switch_function, query)
+    return function(client_id, query_template)
+        prompt_function(client_id, switch_function, query_template)
     end
 end
 
 M.switch_database = chain_prompt_with_action(database_prompt_function, database_switch_function)
 M.switch_connection = chain_prompt_with_action(connection_prompt_function, connection_switch_function)
-M.describe_table = chain_prompt_with_action(describe_table_prompt_function, query_choice_fucntion)
+M.table_helper = chain_prompt_with_action(table_helper_prompt_function, query_choice_fucntion)
 
 return M

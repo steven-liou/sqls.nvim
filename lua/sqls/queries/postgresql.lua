@@ -6,13 +6,13 @@ local basic_constraint_query =
 		information_schema.table_constraints AS tc
 		JOIN information_schema.key_column_usage AS kcu
 			ON tc.constraint_name = kcu.constraint_name
-		JOIN information_schema.referential_constraints as rc
-			ON tc.constraint_name = rc.constraint_name
 		JOIN information_schema.constraint_column_usage AS ccu
-			ON ccu.constraint_name = tc.constraint_name;
+			ON ccu.constraint_name = tc.constraint_name
+		LEFT OUTER JOIN information_schema.referential_constraints as rc
+			ON tc.constraint_name = rc.constraint_name
     ]]
 M.list = function(schema, table)
-    local result = string.format("SELECT * FROM %q.%q LIMIT 500", table, schema)
+    local result = string.format("SELECT * FROM %q.%q LIMIT 500", schema, table)
     return result
 end
 
@@ -27,7 +27,7 @@ end
 
 M.foreign_keys = function(schema, table)
     return string.format(
-        "%s WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name = '%s' AND tc.table_schema = '%s'",
+        "%s WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name = '%s' AND tc.table_schema = '%s';",
         basic_constraint_query,
         table,
         schema
@@ -36,7 +36,7 @@ end
 
 M.references = function(schema, table)
     return string.format(
-        "%s WHERE constraint_type = 'FOREIGN KEY' AND ccu.table_name = '%s' AND tc.table_schema = '%s'",
+        "%s WHERE constraint_type = 'FOREIGN KEY' AND ccu.table_name = '%s' AND tc.table_schema = '%s';",
         basic_constraint_query,
         table,
         schema
@@ -45,7 +45,7 @@ end
 
 M.primary_keys = function(schema, table)
     return string.format(
-        "%s WHERE constraint_type = 'PRIMARY KEY' AND tc.table_name = '%s' AND tc.table_schema = '%s'",
+        "%s WHERE constraint_type = 'PRIMARY KEY' AND tc.table_name = '%s' AND tc.table_schema = '%s';",
         basic_constraint_query,
         table,
         schema
