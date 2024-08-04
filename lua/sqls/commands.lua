@@ -26,7 +26,10 @@ local M = {}
 local function make_show_results_handler(mods, temp_query_bufnr)
     return function(err, result, _, _)
         if err then
-            vim.notify("sqls: " .. err.message, vim.log.levels.ERROR)
+            if err.message ~= nil then
+                vim.notify("sqls: " .. err.message, vim.log.levels.ERROR)
+            end
+                vim.notify("sqls: " .. err, vim.log.levels.ERROR)
             return
         end
         if not result then
@@ -163,9 +166,23 @@ local function make_switch_function(command)
 end
 
 ---@param command string
+---@param system_call boolean
 ---@return sqls_switch_function
 local function make_choice_function(command)
     return function(client_id, query)
+        -- for making system call
+        if queries[vim.g.sqls_nvim_dialect].make_system_call and queries[vim.g.sqls_nvim_dialect].make_system_call(query) then
+            local query_result = queries[vim.g.sqls_nvim_dialect].system_call(query)
+            local result_handler = make_show_results_handler("")
+            local err = nil
+            if vim.v.shell_error ~= 0 then
+                err = "Error making system call"
+            end
+            result_handler(err, query_result)
+            return
+        end
+
+        -- for making lsp call
         -- create a temp file to write custom queries to for the sqls server to read from
         local tempfile = fn.tempname()
         local temp_bufnr = fn.bufnr(tempfile, true)
