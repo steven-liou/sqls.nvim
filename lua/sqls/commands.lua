@@ -29,14 +29,14 @@ local function make_show_results_handler(mods, temp_query_bufnr)
             if err.message ~= nil then
                 vim.notify("sqls: " .. err.message, vim.log.levels.ERROR)
             end
-                vim.notify("sqls: " .. err, vim.log.levels.ERROR)
+            vim.notify("sqls: " .. err, vim.log.levels.ERROR)
             return
         end
         if not result then
             return
         end
         if temp_query_bufnr then
-            vim.cmd("bdelete! " ..temp_query_bufnr.."|b#")
+            vim.cmd("bdelete! " .. temp_query_bufnr .. "|b#")
         end
         local tempfile = fn.tempname() .. ".sqls_output"
         local bufnr = fn.bufnr(tempfile, true)
@@ -171,12 +171,15 @@ end
 local function make_choice_function(command)
     return function(client_id, query)
         -- for making system call
-        if queries[vim.g.sqls_nvim_dialect].make_system_call and queries[vim.g.sqls_nvim_dialect].make_system_call(query) then
+        if
+            queries[vim.g.sqls_nvim_dialect].make_system_call
+            and queries[vim.g.sqls_nvim_dialect].make_system_call(query)
+        then
             local query_result = queries[vim.g.sqls_nvim_dialect].system_call(query)
             local result_handler = make_show_results_handler("")
             local err = nil
             if vim.v.shell_error ~= 0 then
-                err = "Error making system call"
+                err = query_result
             end
             result_handler(err, query_result)
             return

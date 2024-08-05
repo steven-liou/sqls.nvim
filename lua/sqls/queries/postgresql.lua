@@ -2,7 +2,6 @@
 --- @alias system_call boolean
 local M = {}
 
-
 ---@param query
 ---@return boolean
 M.make_system_call = function(query)
@@ -41,11 +40,7 @@ end
 ---@param table string
 ---@return query
 M.describe_table = function(schema, table)
-    local result = string.format(
-        [[\d+ %s.%s]],
-        schema,
-        table
-    )
+    local result = string.format([[\d+ %s.%s]], schema, table)
     return result
 end
 
@@ -101,11 +96,7 @@ end
 ---@param table string
 ---@return query
 M.indices = function(schema, table)
-    return string.format(
-        "SELECT * FROM pg_indexes WHERE tablename='%s' AND schemaname='%s'",
-        table,
-        schema
-    )
+    return string.format("SELECT * FROM pg_indexes WHERE tablename='%s' AND schemaname='%s'", table, schema)
 end
 
 return M
