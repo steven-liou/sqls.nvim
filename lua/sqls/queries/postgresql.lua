@@ -32,7 +32,11 @@ local basic_constraint_query =
 ---@param table string
 ---@return query
 M.list = function(schema, table)
-    local result = string.format("SELECT * FROM %q.%q LIMIT 500", schema, table)
+    local where_clause = vim.fn.input({ prompt = "Condition: ", default = "WHERE ", cancelreturn = "" })
+    if string.match(where_clause, "^%S*%s*$") then
+        where_clause = ""
+    end
+    local result = string.format("SELECT * FROM %q.%q %s LIMIT 500", schema, table, where_clause)
     return result
 end
 

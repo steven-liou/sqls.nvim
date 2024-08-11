@@ -25,18 +25,19 @@ local M = {}
 ---@return sqls_lsp_handler
 local function make_show_results_handler(mods, temp_query_bufnr)
     return function(err, result, _, _)
+        if temp_query_bufnr then
+            vim.cmd("bdelete! " .. temp_query_bufnr .. "|b#")
+        end
         if err then
             if err.message ~= nil then
                 vim.notify("sqls: " .. err.message, vim.log.levels.ERROR)
+            else
+                vim.notify("sqls: " .. vim.inspect(err), vim.log.levels.ERROR)
             end
-            vim.notify("sqls: " .. err, vim.log.levels.ERROR)
             return
         end
         if not result then
             return
-        end
-        if temp_query_bufnr then
-            vim.cmd("bdelete! " .. temp_query_bufnr .. "|b#")
         end
         local tempfile = fn.tempname() .. ".sqls_output"
         local bufnr = fn.bufnr(tempfile, true)
